@@ -121,8 +121,20 @@ namespace GeneratePlayerMaze
                 route = map.mPathFinder.FindPath(StartLocation, EndLocation, 2);
                 if (route != null)
                 {
+                    foreach (String[][] madeMapData in madeMaps)
+                    {
+                        for (int y = 0; y < mapHeightY; y++)
+                        {
+                            StringBuilder mapstring = new StringBuilder();
+                            for (int x = 0; x < mapWidthX; x++)
+                            {
+                            }
+                        }
+                    }
+
                     if (debug) PrintMap(route);
                     SaveMap(route);
+                    madeMaps.Add(mapdata);
                     if (mapsRequested == mapsmade)
                     {
                         Console.WriteLine("Finished writing maps");
