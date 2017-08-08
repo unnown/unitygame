@@ -30,11 +30,16 @@ namespace GeneratePlayerMaze
 
         static int mapsmade = 0;
         static int mapsRequested = 1;
+        static int failedAttempts = 0;
+        static int maxFailedAttempts = 300;
 
         static int skillLvl = 1;
         static int minMoney = 200;
-        static int maxMoney = 1000;
+        static int maxMoney = 1000;        
+        static short jumpHeight = 6;
         static bool debug = false;
+
+        static int walkID = 0;
 
         static List<String[][]> madeMaps = new List<String[][]>();
 
@@ -44,7 +49,7 @@ namespace GeneratePlayerMaze
 
             if (args.Length == 0)
             {
-                Console.WriteLine("Please enter a numeric argument (skill, min-money, max-money)");
+                Console.WriteLine("Please enter a numeric argument (skill, min-money, max-money, jumpheight)");
                 return;
             }
             skillLvl = int.Parse(args[0]);
@@ -62,7 +67,17 @@ namespace GeneratePlayerMaze
 
             if (args.Length >= 5)
             {
-                debug = bool.Parse(args[4]);
+                jumpHeight = short.Parse(args[4]);
+            }
+
+            if (args.Length >= 6)
+            {
+                debug = bool.Parse(args[5]);
+            }
+
+            if (args.Length >= 7)
+            {
+                walkID = int.Parse(args[6]);
             }
 
             var parser = new FileIniDataParser();
@@ -70,75 +85,155 @@ namespace GeneratePlayerMaze
             int maxSpikes = int.Parse(data["Traps"]["Spikes"]);
             for (int i = 0; i < maxSpikes; i++) traps.Add(new Trap("d1", false, true));
 
+            Console.WriteLine("Loading existing routes");
+            bool loading = true;
+            int checkNum = 1;
+            while (loading)
+            {
+                if (File.Exists($"{Directory.GetCurrentDirectory()}\\maps\\Skill{skillLvl}\\map{checkNum}\\level.txt"))
+                {
+                    Loadmap(walkID);
+                    madeMaps.Add(mapdata);
+                    checkNum++;
+                }
+                else
+                {
+                    loading = false;
+                }
+            }
+            Console.WriteLine($"{checkNum - 1} routes found");
+
             if (debug) Console.WriteLine("Loading map");
-            Loadmap();
+            Loadmap(walkID);
 
             if (debug) Console.WriteLine("Checking route");
-            List<Point> route = map.mPathFinder.FindPath(StartLocation, EndLocation, 2);
+            List<Point> route = map.mPathFinder.FindPath(StartLocation, EndLocation, jumpHeight);
             if (debug) PrintMap(route);
+            if (route == null)
+            {
+                Console.WriteLine("No initial route found!");
+                PrintMap(null);
+                Console.ReadLine();
+                Environment.Exit(-1);
+            }
 
             bool running = true;
-            if (debug) Console.WriteLine("Placing traps");
-            while (running)
+            if (walkID > 0)
             {
-                if (debug) Console.WriteLine("Reloading map");
-                Loadmap();
-                route = map.mPathFinder.FindPath(StartLocation, EndLocation, 2);
-
-                if (debug) Console.WriteLine("Adding traps");
-                if (route != null && route.Count > 4)
+                route.Reverse();
+                int count = 0;
+                while (running)
                 {
-                    foreach (Trap trap in traps)
+                    Console.WriteLine($"Printing route {count}");
+                    List<Point> tempRoute = route.Take(count).ToList();
+                    PrintMap(tempRoute);
+                    if (count < route.Count)
                     {
-                        bool found = false;
-                        while (!found)
+                        System.Threading.Thread.Sleep(100);
+                        count++;
+                    }
+                    else
+                    {
+                        count = 0;
+                        System.Threading.Thread.Sleep(1000);
+                    }                    
+                    Console.Clear();
+                }
+                Console.ReadLine();
+            }
+            else
+            {
+                if (debug) Console.WriteLine("Placing traps");
+                while (running)
+                {
+                    if (debug) Console.WriteLine("Reloading map");
+                    Loadmap(walkID);
+                    route = map.mPathFinder.FindPath(StartLocation, EndLocation, jumpHeight);
+
+                    if (debug) Console.WriteLine("Adding traps");
+                    if (route != null && route.Count > 4)
+                    {
+                        foreach (Trap trap in traps)
                         {
-                            int randNum = rand.Next(2, route.Count - 2);
-                            if (trap.Ground)
+                            bool found = false;
+                            while (!found)
                             {
-                                if (map.IsGround(route[randNum].X, route[randNum].Y - 1))
+                                int randNum = rand.Next(2, route.Count - 2);
+                                if (trap.Ground)
+                                {
+                                    if (map.IsGround(route[randNum].X, route[randNum].Y - 1))
+                                    {
+                                        mapdata[(mapHeightY - 1) - route[randNum].Y][route[randNum].X] = trap.Type;
+                                        map.SetTile(route[randNum].X, route[randNum].Y, TileType.Deadly);
+                                        found = true;
+                                    }
+                                }
+                                else
                                 {
                                     mapdata[(mapHeightY - 1) - route[randNum].Y][route[randNum].X] = trap.Type;
                                     map.SetTile(route[randNum].X, route[randNum].Y, TileType.Deadly);
                                     found = true;
                                 }
                             }
-                            else
-                            {
-                                mapdata[(mapHeightY - 1) - route[randNum].Y][route[randNum].X] = trap.Type;
-                                map.SetTile(route[randNum].X, route[randNum].Y, TileType.Deadly);
-                                found = true;
-                            }
                         }
                     }
-                } else
-                {
-                    if (debug) Console.WriteLine("Route to short");
-                    route = null;
-                }
-
-                // Check if we can still win the map with the added traps
-                route = map.mPathFinder.FindPath(StartLocation, EndLocation, 2);
-                if (route != null)
-                {
-                    foreach (String[][] madeMapData in madeMaps)
+                    else
                     {
-                        for (int y = 0; y < mapHeightY; y++)
+                        if (debug) Console.WriteLine("Route to short");
+                        route = null;
+                    }
+
+                    // Check if we can still win the map with the added traps
+                    route = map.mPathFinder.FindPath(StartLocation, EndLocation, jumpHeight);
+                    if (route != null)
+                    {
+                        bool isnew = true;
+                        foreach (String[][] madeMapData in madeMaps)
                         {
-                            StringBuilder mapstring = new StringBuilder();
-                            for (int x = 0; x < mapWidthX; x++)
+                            bool foundDiff = false;
+                            for (int y = 0; y < mapHeightY; y++)
                             {
+                                StringBuilder mapstring = new StringBuilder();
+                                for (int x = 0; x < mapWidthX; x++)
+                                {
+                                    if (madeMapData[y][x] != mapdata[y][x])
+                                    {
+                                        foundDiff = true;
+                                        break;
+                                    }
+                                }
+
+                                if (foundDiff) break;
+                            }
+
+                            if (!foundDiff)
+                            {
+                                isnew = false;
+                                break;
                             }
                         }
-                    }
 
-                    if (debug) PrintMap(route);
-                    SaveMap(route);
-                    madeMaps.Add(mapdata);
-                    if (mapsRequested == mapsmade)
-                    {
-                        Console.WriteLine("Finished writing maps");
-                        running = false;
+                        if (isnew)
+                        {
+                            if (debug) PrintMap(route);
+                            SaveMap(route);
+                            madeMaps.Add(mapdata);
+                            if (mapsRequested == mapsmade)
+                            {
+                                Console.WriteLine("Finished writing maps");
+                                running = false;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Created old/existing map");
+                            failedAttempts++;
+                            if (failedAttempts >= maxFailedAttempts)
+                            {
+                                Console.WriteLine("To many failed attempts - shutting down");
+                                Environment.Exit(-2);
+                            }
+                        }
                     }
                 }
             }
@@ -166,9 +261,11 @@ namespace GeneratePlayerMaze
             Console.WriteLine((route != null) ? "route found" : "no route");
         }
 
-        public static void Loadmap()
+        public static void Loadmap(int walkID = 0)
         {
-            String[] result = File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\BaseLevels\\Skill{skillLvl}\\level.txt");
+            String[] result = null;
+            if (walkID != 0) result = File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\maps\\Skill{skillLvl}\\map{walkID}\\level.txt");
+            else result = File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\BaseLevels\\Skill{skillLvl}\\level.txt");
             mapdata = new String[result.Length][];
             for (int i = 0; i < result.Length; i++)
             {

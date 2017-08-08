@@ -21,16 +21,35 @@ namespace LevelMaker
             block.Show();
 
             for (int i = 0; i < 50; i++)
-            {                
+            {
                 DataGridViewImageColumn ic = new DataGridViewImageColumn();
                 ic.HeaderText = "";
                 ic.Image = block.getList().blocks.Find(bl => bl.BlockID == "01").Image;
                 ic.Name = "";
-                ic.Width = 20;
+                ic.Tag = "01";
+                ic.Width = 35;
 
                 dataGridView1.Columns.Add(ic);
             }
+            dataGridView1.RowTemplate.Height = 35;
             dataGridView1.Rows.Add(20);
+
+            this.Width = CountGridWidth(dataGridView1);
+            this.Height = CountGridHeight(dataGridView1);
+        }
+
+        public static int CountGridWidth(DataGridView dgv)
+        {
+            int width = 0;
+            foreach (DataGridViewColumn column in dgv.Columns) width += column.Width;
+            return width += 100;
+        }
+
+        public static int CountGridHeight(DataGridView dgv)
+        {
+            int height = 0;
+            foreach (DataGridViewRow row in dgv.Rows) height += row.Height;
+            return height += 100;
         }
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -45,10 +64,10 @@ namespace LevelMaker
 
         private void updateCells()
         {
-                for (int y = 0; y < dataGridView1.Rows.Count; y++)
+            for (int y = 0; y < dataGridView1.Rows.Count; y++)
+            {
+                for (int x = 0; x < dataGridView1.Columns.Count; x++)
                 {
-                    for (int x = 0; x < dataGridView1.Columns.Count; x++)
-                    {
                     DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
                     if (cell.Selected)
                     {
@@ -114,7 +133,7 @@ namespace LevelMaker
                     for (int x = 0; x < dataGridView1.Columns.Count; x++)
                     {
                         DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
-                        String dataCell = mapdata[x][y];
+                        String dataCell = mapdata[y][x];
                         if (!dataCell.Contains("0"))
                         {
                             foreach (Control ctrl in block.Controls)
@@ -142,8 +161,8 @@ namespace LevelMaker
                 for (int x = 0; x < dataGridView1.Columns.Count; x++)
                 {
                     DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
-                    cell.Value = null;
-                    cell.Tag = "";
+                    cell.Value = block.getList().blocks.Find(bl => bl.BlockID == "01").Image;
+                    cell.Tag = "01";
                 }
             }
         }
