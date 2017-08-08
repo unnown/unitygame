@@ -1,0 +1,5 @@
+blank;01;0
+brickWall;b1;1
+spikesBottom;d1;2
+start;st;0
+finish;fn;0

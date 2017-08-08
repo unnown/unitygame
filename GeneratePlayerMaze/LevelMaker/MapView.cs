@@ -18,23 +18,19 @@ namespace LevelMaker
         public MapView()
         {
             InitializeComponent();
+            block.Show();
 
             for (int i = 0; i < 50; i++)
-            {
+            {                
                 DataGridViewImageColumn ic = new DataGridViewImageColumn();
                 ic.HeaderText = "";
-                ic.Image = null;
+                ic.Image = block.getList().blocks.Find(bl => bl.BlockID == "01").Image;
                 ic.Name = "";
                 ic.Width = 20;
 
                 dataGridView1.Columns.Add(ic);
             }
             dataGridView1.Rows.Add(20);
-        }
-
-        private void MapView_Activated(object sender, EventArgs e)
-        {
-            block.Show();
         }
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -49,10 +45,10 @@ namespace LevelMaker
 
         private void updateCells()
         {
-            for (int x = 0; x < dataGridView1.Columns.Count; x++)
-            {
                 for (int y = 0; y < dataGridView1.Rows.Count; y++)
                 {
+                    for (int x = 0; x < dataGridView1.Columns.Count; x++)
+                    {
                     DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
                     if (cell.Selected)
                     {
@@ -75,9 +71,9 @@ namespace LevelMaker
             {
                 StringBuilder map = new StringBuilder();
 
-                for (int x = 0; x < dataGridView1.Columns.Count; x++)
+                for (int y = 0; y < dataGridView1.Rows.Count; y++)
                 {
-                    for (int y = 0; y < dataGridView1.Rows.Count; y++)
+                    for (int x = 0; x < dataGridView1.Columns.Count; x++)
                     {
                         DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
                         if (cell.Tag != null && !String.IsNullOrEmpty(cell.Tag.ToString()))
@@ -111,11 +107,11 @@ namespace LevelMaker
                 for (int i = 0; i < result.Length; i++)
                 {
                     mapdata[i] = result[i].Split(' ');
-                }                
+                }
 
-                for (int x = 0; x < dataGridView1.Columns.Count; x++)
+                for (int y = 0; y < dataGridView1.Rows.Count; y++)
                 {
-                    for (int y = 0; y < dataGridView1.Rows.Count; y++)
+                    for (int x = 0; x < dataGridView1.Columns.Count; x++)
                     {
                         DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
                         String dataCell = mapdata[x][y];
@@ -141,9 +137,9 @@ namespace LevelMaker
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            for (int x = 0; x < dataGridView1.Columns.Count; x++)
+            for (int y = 0; y < dataGridView1.Rows.Count; y++)
             {
-                for (int y = 0; y < dataGridView1.Rows.Count; y++)
+                for (int x = 0; x < dataGridView1.Columns.Count; x++)
                 {
                     DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
                     cell.Value = null;
