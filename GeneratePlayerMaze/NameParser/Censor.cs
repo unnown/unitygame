@@ -19,32 +19,14 @@ namespace TempParser
             CensoredWords = new List<string>(censoredWords);
         }
 
-        public string CensorText(string text)
-        {
-            if (text == null)
-                throw new ArgumentNullException("text");
-
-            string censoredText = text;
-
-            foreach (string censoredWord in CensoredWords)
-            {
-                string regularExpression = ToRegexPattern(censoredWord);
-
-                censoredText = Regex.Replace(censoredText, regularExpression, StarCensoredMatch,
-                  RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-            }
-
-            return censoredText;
-        }
-
-        private static string StarCensoredMatch(Match m)
+        public static string StarCensoredMatch(Match m)
         {
             string word = m.Captures[0].Value;
 
             return new string('*', word.Length);
         }
 
-        private string ToRegexPattern(string wildcardSearch)
+        public static string ToRegexPattern(string wildcardSearch)
         {
             string regexPattern = Regex.Escape(wildcardSearch);
 

@@ -4,7 +4,9 @@ rule content_cs_language_nsfw {
   $  =  "vap3"  fullword wide ascii nocase
   $  =  "v4pe"  fullword wide ascii nocase
   $  =  "v4p3"  fullword wide ascii nocase
-  $  =  "minecraft"  fullword wide ascii nocase
+  $  =  "craft"  fullword wide ascii nocase
+  $  =  "cr@ft"  fullword wide ascii nocase
+  $  =  "mine"  fullword wide ascii nocase
   $  =  "min3craft"  fullword wide ascii nocase
   $  =  "mc"  fullword wide ascii nocase
   $  =  "craft"  fullword wide ascii nocase
@@ -62,7 +64,8 @@ rule content_cs_language_nsfw {
   $  =  "balls"  fullword wide ascii nocase  
   $  =  "vapo"  fullword wide ascii nocase  
   $  =  "swat"  fullword wide ascii nocase  
-  $  =  "username"  fullword wide ascii nocase    
+  $  =  "username"  fullword wide ascii nocase   
+  $  =  "pen1s"  fullword wide ascii nocase      
 condition:
   1 of them
 }
