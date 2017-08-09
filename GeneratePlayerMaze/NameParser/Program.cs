@@ -60,6 +60,11 @@ namespace TempParser
                 string regularExpression = Censor.ToRegexPattern(word);
                 if (!paterns.ContainsKey(word)) paterns.Add(word, regularExpression);
             }
+            Console.Write("Found ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(paterns.Keys.Count);
+            Console.ResetColor();
+            Console.WriteLine(" badwords!");
 
             bool running = true;
             int limitFilter = 0;
