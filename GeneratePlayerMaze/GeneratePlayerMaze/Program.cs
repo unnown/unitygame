@@ -2,6 +2,7 @@
 using GeneratePlayerMaze.Classes;
 using IniParser;
 using IniParser.Model;
+using Routing.Classes;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -36,7 +37,8 @@ namespace GeneratePlayerMaze
         static int skillLvl = 1;
         static int minMoney = 200;
         static int maxMoney = 1000;        
-        static short jumpHeight = 6;
+        static short jumpHeight = 4;
+        static int mintrapDist = 2;
         static bool debug = false;
 
         static int walkID = 0;
@@ -64,6 +66,8 @@ namespace GeneratePlayerMaze
             {
                 mapsRequested = int.Parse(args[3]);
             }
+            mapsRequested = 100000;
+            maxFailedAttempts = 1000;
 
             if (args.Length >= 5)
             {
@@ -72,12 +76,17 @@ namespace GeneratePlayerMaze
 
             if (args.Length >= 6)
             {
-                debug = bool.Parse(args[5]);
-            }
+                mintrapDist = int.Parse(args[5]);
+            }            
 
             if (args.Length >= 7)
             {
-                walkID = int.Parse(args[6]);
+                debug = bool.Parse(args[6]);
+            }
+
+            if (args.Length >= 8)
+            {
+                walkID = int.Parse(args[7]);
             }
 
             var parser = new FileIniDataParser();
@@ -163,9 +172,17 @@ namespace GeneratePlayerMaze
                                 {
                                     if (map.IsGround(route[randNum].X, route[randNum].Y - 1))
                                     {
-                                        mapdata[(mapHeightY - 1) - route[randNum].Y][route[randNum].X] = trap.Type;
-                                        map.SetTile(route[randNum].X, route[randNum].Y, TileType.Deadly);
-                                        found = true;
+                                        double dist = GetDistance(route[randNum - 1].X, route[randNum - 1].Y, route[randNum].X, route[randNum].Y);
+                                        if (dist > mintrapDist || dist < -mintrapDist)
+                                        {
+                                            dist = GetDistance(route[randNum + 1].X, route[randNum + 1].Y, route[randNum].X, route[randNum].Y);
+                                            if (dist > mintrapDist || dist < -mintrapDist)
+                                            {
+                                                mapdata[(mapHeightY - 1) - route[randNum].Y][route[randNum].X] = trap.Type;
+                                                map.SetTile(route[randNum].X, route[randNum].Y, TileType.Deadly);
+                                                found = true;
+                                            }
+                                        }
                                     }
                                 }
                                 else
@@ -238,6 +255,11 @@ namespace GeneratePlayerMaze
                 }
             }
             Environment.Exit(0);
+        }
+
+        private static double GetDistance(double x1, double y1, double x2, double y2)
+        {
+            return Math.Sqrt(Math.Pow((x2 - x1), 2) + Math.Pow((y2 - y1), 2));
         }
 
         public static void PrintMap(List<Point> route)

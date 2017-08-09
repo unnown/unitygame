@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GeneratePlayerMaze.Classes
+namespace Routing.Classes
 {
     public class Map
     {
@@ -33,7 +33,7 @@ namespace GeneratePlayerMaze.Classes
 
         public void SetTile(int x, int y, TileType type)
         {
-            if (x <= 1 || x >= mWidth - 2 || y <= 1 || y >= mHeight - 2)
+            if (x < 0 || x > mWidth || y < 0 || y > mHeight)
                 return;
 
             tiles[x, y] = type;

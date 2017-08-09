@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Blocks;
+using Routing.Classes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,19 +16,32 @@ namespace LevelMaker
     public partial class MapView : Form
     {
         Blocks block = new LevelMaker.Blocks();
+        BlockList blockList = new BlockList();
+        List<Point> route = null;
+
+        Block start = null;
+        Block finish = null;
+        Block blank = null;
+        Bitmap imgRoute = null;
+        static short jumpHeight = 4;
 
         public MapView()
         {
             InitializeComponent();
             block.Show();
 
+            start = blockList.blocks.Find(bl => bl.Name == "start");
+            finish = blockList.blocks.Find(bl => bl.Name == "finish");
+            blank = blockList.blocks.Find(bl => bl.Name == "blank");
+            imgRoute = (Bitmap)Image.FromFile($"{Directory.GetCurrentDirectory()}\\Resources\\route.png");
+
             for (int i = 0; i < 50; i++)
             {
                 DataGridViewImageColumn ic = new DataGridViewImageColumn();
                 ic.HeaderText = "";
-                ic.Image = block.getList().blocks.Find(bl => bl.BlockID == "01").Image;
+                ic.Image = blank.Image;
                 ic.Name = "";
-                ic.Tag = "01";
+                ic.Tag = blank.BlockID;
                 ic.Width = 35;
 
                 dataGridView1.Columns.Add(ic);
@@ -74,40 +89,107 @@ namespace LevelMaker
                         cell.Value = Program.img;
                         cell.Tag = Program.block;
                     }
+                    else if (cell.Value == imgRoute)
+                    {
+                        cell.Value = blank.Image;
+                    }
+                }
+            }
+            checkRoute();
+        }
+
+        private void checkRoute()
+        {
+            Point StartLocation = new Point();
+            Point EndLocation = new Point();
+
+            Map map = new Map(dataGridView1.Columns.Count, dataGridView1.Rows.Count);
+            for (int y = 0; y < dataGridView1.Rows.Count; y++)
+            {
+                for (int x = 0; x < dataGridView1.Columns.Count; x++)
+                {
+                    DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
+                    if (cell.Tag != null && !String.IsNullOrEmpty(cell.Tag.ToString()))
+                    {
+                        foreach (Block block in blockList.blocks)
+                        {
+                            if (block.BlockID == cell.Tag.ToString())
+                            {
+                                map.SetTile(x, (dataGridView1.Rows.Count - 1) - y, block.Type);
+                            }
+                        }
+
+                        if (cell.Tag.ToString() == start.BlockID) StartLocation = new Point(x, (dataGridView1.Rows.Count - 1) - y);
+                        if (cell.Tag.ToString() == finish.BlockID) EndLocation = new Point(x, (dataGridView1.Rows.Count - 1) - y);
+                    }
+                    else
+                    {
+                        map.SetTile(x, (dataGridView1.Rows.Count - 1) - y, blank.Type);
+                    }
+                }
+            }
+
+            if (!StartLocation.IsEmpty && !EndLocation.IsEmpty)
+            {
+                route = map.mPathFinder.FindPath(StartLocation, EndLocation, jumpHeight);
+                if (route == null) this.Text = "Map gen - No route found!";
+                else
+                {
+                    this.Text = "Map gen";
+
+                    route.Reverse();
+                    if (route.Count > 2)
+                    {
+                        route.RemoveAt(0);
+                        route.RemoveAt(route.Count - 1);
+                    }
+
+                    foreach (Point point in route)
+                    {
+                        DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[point.X, (dataGridView1.Rows.Count - 1) - point.Y];
+                        cell.Value = imgRoute;
+                    }
                 }
             }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SaveFileDialog sf = new SaveFileDialog();
-            // Feed the dummy name to the save dialog
-            sf.FileName = "level";
-            sf.InitialDirectory = Directory.GetCurrentDirectory();
-            sf.DefaultExt = ".txt";
-
-            if (sf.ShowDialog() == DialogResult.OK)
+            if (route == null)
             {
-                StringBuilder map = new StringBuilder();
+                MessageBox.Show("No possible route found, saving disabled");
+            }
+            else
+            {
+                SaveFileDialog sf = new SaveFileDialog();
+                // Feed the dummy name to the save dialog
+                sf.FileName = "level";
+                sf.InitialDirectory = Directory.GetCurrentDirectory();
+                sf.DefaultExt = ".txt";
 
-                for (int y = 0; y < dataGridView1.Rows.Count; y++)
+                if (sf.ShowDialog() == DialogResult.OK)
                 {
-                    for (int x = 0; x < dataGridView1.Columns.Count; x++)
-                    {
-                        DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
-                        if (cell.Tag != null && !String.IsNullOrEmpty(cell.Tag.ToString()))
-                        {
-                            map.Append($"{cell.Tag.ToString() } ");
-                        }
-                        else
-                        {
-                            map.Append("0 ");
-                        }
-                    }
-                    map.AppendLine();
-                }
+                    StringBuilder map = new StringBuilder();
 
-                File.WriteAllText($"{sf.FileName}", map.ToString());
+                    for (int y = 0; y < dataGridView1.Rows.Count; y++)
+                    {
+                        for (int x = 0; x < dataGridView1.Columns.Count; x++)
+                        {
+                            DataGridViewImageCell cell = (DataGridViewImageCell)dataGridView1[x, y];
+                            if (cell.Tag != null && !String.IsNullOrEmpty(cell.Tag.ToString()))
+                            {
+                                map.Append($"{cell.Tag.ToString() } ");
+                            }
+                            else
+                            {
+                                map.Append($"{blank.BlockID} ");
+                            }
+                        }
+                        map.AppendLine();
+                    }
+
+                    File.WriteAllText($"{sf.FileName}", map.ToString());
+                }
             }
         }
 
@@ -151,6 +233,7 @@ namespace LevelMaker
                         }
                     }
                 }
+                checkRoute();
             }
         }
 

@@ -94,6 +94,15 @@
       <Project>{260e8131-b808-4854-ad4b-9c1e334dee27}</Project>
       <Name>Blocks</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Routing\Routing.csproj">
+      <Project>{7E21160F-E966-4F13-BB4C-F6E8BDD48CE2}</Project>
+      <Name>Routing</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\route.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

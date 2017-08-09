@@ -15,7 +15,7 @@ using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
-using GeneratePlayerMaze.Classes;
+using Routing.Classes;
 
 namespace Algorithms
 {
