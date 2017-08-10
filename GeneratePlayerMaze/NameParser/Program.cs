@@ -19,6 +19,8 @@ namespace TempParser
         static Dictionary<String, String> paterns = new Dictionary<string, string>();
         static StringBuilder newData = new StringBuilder();
 
+        static bool refining = true;
+
         static void Main(string[] args)
         {
             Console.WriteLine("Parsing bad words!");
@@ -44,7 +46,16 @@ namespace TempParser
                                 {
                                     if (check != censorword[i])
                                     {
-                                        censoredWords.Add(censorword);
+                                        StringBuilder sb = new StringBuilder();
+                                        foreach (char c in censorword)
+                                        {
+                                            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+                                            {
+                                                sb.Append(c);
+                                            }
+                                        }
+                                        string parsedword = sb.ToString().Trim();
+                                        if (parsedword.Length > 3) censoredWords.Add(parsedword);
                                         break;
                                     }
                                 }                                
@@ -68,7 +79,16 @@ namespace TempParser
                         {
                             if (check != word[i])
                             {
-                                censoredWords.Add(word);
+                                StringBuilder sb = new StringBuilder();
+                                foreach (char c in word)
+                                {
+                                    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+                                    {
+                                        sb.Append(c);
+                                    }
+                                }
+                                string parsedword = sb.ToString().Trim();
+                                if (parsedword.Length > 3) censoredWords.Add(parsedword);
                                 break;
                             }
                         }
@@ -77,8 +97,16 @@ namespace TempParser
             }
             censor = new Censor(censoredWords);
 
-            List<String> result = File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\usernames.txt").ToList();
-            result.AddRange(File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\mcNames.txt").ToList());
+            List<String> result = null;
+            if (refining)
+            {
+                result = File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\names.txt").ToList();
+            }
+            else
+            {
+                result = File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\usernames.txt").ToList();
+                result.AddRange(File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\mcNames.txt").ToList());
+            }
 
             foreach (string word in censor.CensoredWords)
             {
@@ -103,6 +131,7 @@ namespace TempParser
                 if (filtered >= limitFilter)
                 {
                     limitFilter += 10;
+                    if (limitFilter > result.Count) limitFilter = result.Count - 1;
                     for (int i = filtered; i <= limitFilter; i++)
                     {
                         parseName(result[i]);
@@ -129,6 +158,7 @@ namespace TempParser
             }
 
             File.WriteAllText($"{Directory.GetCurrentDirectory()}\\names.txt", newData.ToString());
+            Console.ReadLine();
         }
 
         private async static void parseName(string data)
@@ -150,18 +180,23 @@ namespace TempParser
                 }
 
                 StringBuilder sb = new StringBuilder();
+                bool containsChars = false;
                 foreach (char c in name)
                 {
                     if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
                     {
                         sb.Append(c);
                     }
-                }
-                name = sb.ToString();
 
+                    if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+                        containsChars = true;
+                }
+
+                if (containsChars) name = sb.ToString().Trim();
+                else name = "";
                 if (name.Length >= 5 && name.Length <= 25)
                 {
-                    string fancyName = name.Trim();
+                    string fancyName = name.ToLower();
                     foreach (string word in censor.CensoredWords)
                     {
                         if (fancyName.Contains(word)) { 
@@ -170,14 +205,45 @@ namespace TempParser
                         }
                         else
                         {
-                            string regularExpression = "";
-                            paterns.TryGetValue(word, out regularExpression);
-                            if (!String.IsNullOrEmpty(regularExpression))
+                            int charCount = 0;
+                            int indexOf = -1;
+                            for (int i = 0; i < word.Length; i++)
                             {
-                                fancyName = Regex.Replace(fancyName, regularExpression, Censor.StarCensoredMatch,
-                                  RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                                indexOf = fancyName.IndexOf(word[i]);
+                                if (indexOf >= 0)
+                                {
+                                    charCount++;
+                                    for (int x = (i + 1); x < word.Length; x++)
+                                    {
+                                        if ((i+x) < word.Length && (indexOf + x) < fancyName.Length)
+                                        {
+                                            if (word[i + x] == fancyName[indexOf + x])
+                                                charCount++;
+                                            else
+                                            {
+                                                if ((fancyName[indexOf + x] >= 'a' && fancyName[indexOf + x] <= 'z'))
+                                                {
+                                                    //totally diff letter, doesn't count. reset and continue to the next word
+                                                    charCount = 0;
+                                                    break;
+                                                }
+                                            }
+                                        } else
+                                        {
+                                            // Word ended... so, meh
+                                            charCount = 0;
+                                            break;
+                                        }                                      
+                                    }
+                                    break;
+                                }
+                            }
 
-                                if (fancyName.Contains("*")) break;
+                            if (word.Length * 0.70 < charCount)
+                            {
+                                Console.WriteLine($"Found match {charCount} out of {word.Length} in word {fancyName} against word {word}");
+                                fancyName = "*";
+                                break;
                             }
                         }                        
                     }
