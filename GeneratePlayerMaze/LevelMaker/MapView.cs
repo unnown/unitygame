@@ -23,7 +23,7 @@ namespace LevelMaker
         Block finish = null;
         Block blank = null;
         Bitmap imgRoute = null;
-        static short jumpHeight = 4;
+        static short jumpHeight = 2;
 
         public MapView()
         {

@@ -17,10 +17,12 @@ namespace TempParser
         static int incorrect = 0;
         static int filtered = 0;
         static Dictionary<String, String> paterns = new Dictionary<string, string>();
+        static StringBuilder newData = new StringBuilder();
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Parsing bad words!");            
+            Console.WriteLine("Parsing bad words!");
+            int wordCount = 0;
 
             IList<string> censoredWords = new List<string>();
             string[] files = Directory.GetFiles($"{Directory.GetCurrentDirectory()}\\Resources\\");
@@ -31,10 +33,22 @@ namespace TempParser
                 {
                     if (word.Contains("$  ="))
                     {
+                        wordCount++;
                         foreach (Match match in Regex.Matches(word, "\"([^\"]*)\""))
                         {
-                            string censorword = match.ToString().Replace("\"", "").ToLower();
-                            if (!censorword.Contains(" ")) censoredWords.Add(censorword);
+                            string censorword = match.ToString().Replace("\"", "").ToLower().Trim();
+                            if (!censorword.Contains(" ") && censorword.Length > 1)
+                            {
+                                char check = censorword[0];
+                                for (int i = 1; i < censorword.Length; i++)
+                                {
+                                    if (check != censorword[i])
+                                    {
+                                        censoredWords.Add(censorword);
+                                        break;
+                                    }
+                                }                                
+                            }
                         }
                     }
                 }
@@ -46,12 +60,23 @@ namespace TempParser
                 String[] badwords = File.ReadAllLines(filename);
                 foreach (string word in badwords)
                 {
-                    if (!word.Contains(" ")) censoredWords.Add(word);
+                    wordCount++;
+                    if (!word.Contains(" ") && word.Length > 3)
+                    {
+                        char check = word[0];
+                        for (int i = 1; i < word.Length; i++)
+                        {
+                            if (check != word[i])
+                            {
+                                censoredWords.Add(word);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
             censor = new Censor(censoredWords);
 
-            StringBuilder newData = new StringBuilder();
             List<String> result = File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\usernames.txt").ToList();
             result.AddRange(File.ReadAllLines($"{Directory.GetCurrentDirectory()}\\mcNames.txt").ToList());
 
@@ -64,7 +89,11 @@ namespace TempParser
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(paterns.Keys.Count);
             Console.ResetColor();
-            Console.WriteLine(" badwords!");
+            Console.Write(" badwords out of ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(wordCount);
+            Console.ResetColor();
+            Console.WriteLine(" words!");
 
             bool running = true;
             int limitFilter = 0;
@@ -92,11 +121,11 @@ namespace TempParser
                     Console.ResetColor();
                     Console.WriteLine(")");
 
-//                    Console.WriteLine($"Filtered out {filtered} of {result.Count} records ({incorrect} incorrect - {correct} correct)");
                     lastval = filtered;
                 }
                 System.Threading.Thread.Sleep(100);
                 if (filtered >= result.Count) running = false;
+                else File.WriteAllText($"{Directory.GetCurrentDirectory()}\\names.txt", newData.ToString());
             }
 
             File.WriteAllText($"{Directory.GetCurrentDirectory()}\\names.txt", newData.ToString());
@@ -135,7 +164,10 @@ namespace TempParser
                     string fancyName = name.Trim();
                     foreach (string word in censor.CensoredWords)
                     {
-                        if (fancyName.Contains("word")) fancyName = fancyName.Replace(word, "*");
+                        if (fancyName.Contains(word)) { 
+                            fancyName = fancyName.Replace(word, "*");
+                            break;
+                        }
                         else
                         {
                             string regularExpression = "";
@@ -144,6 +176,8 @@ namespace TempParser
                             {
                                 fancyName = Regex.Replace(fancyName, regularExpression, Censor.StarCensoredMatch,
                                   RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+                                if (fancyName.Contains("*")) break;
                             }
                         }                        
                     }
@@ -152,7 +186,14 @@ namespace TempParser
                     {
                         lock (correctNames)
                         {
-                            correctNames.Add(name);
+                            if (!correctNames.Contains(name))
+                            {
+                                correctNames.Add(name);
+                                lock (newData)
+                                {
+                                    newData.AppendLine(name);
+                                }
+                            }
                         }
 
                         Interlocked.Increment(ref correct);
@@ -160,7 +201,8 @@ namespace TempParser
                     {
                         Interlocked.Increment(ref incorrect);
                     }
-                } else
+                }
+                else
                 {
                     Interlocked.Increment(ref incorrect);
                 }

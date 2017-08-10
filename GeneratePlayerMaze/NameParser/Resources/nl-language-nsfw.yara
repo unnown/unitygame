@@ -1,6 +1,6 @@
 rule content_nl_language_nsfw {
   strings:
-      $  =  "aardappels afgieteng"  fullword wide ascii nocase
+      $  =  "aardappels afgieten"  fullword wide ascii nocase
       $  =  "achter het raam zitten"  fullword wide ascii nocase
       $  =  "afberen"  fullword wide ascii nocase
       $  =  "aflebberen"  fullword wide ascii nocase
@@ -42,7 +42,7 @@ rule content_nl_language_nsfw {
       $  =  "de pijp uitgaan"  fullword wide ascii nocase
       $  =  "delg"  fullword wide ascii nocase
       $  =  "dombo"  fullword wide ascii nocase
-      $  =  "draaikontg"  fullword wide ascii nocase
+      $  =  "draaikont"  fullword wide ascii nocase
       $  =  "driehoog achter wonen"  fullword wide ascii nocase
       $  =  "drolg"  fullword wide ascii nocase
       $  =  "drooggeiler"  fullword wide ascii nocase
@@ -139,7 +139,7 @@ rule content_nl_language_nsfw {
       $  =  "reet"  fullword wide ascii nocase
       $  =  "reet trappen, voor zijn"  fullword wide ascii nocase
       $  =  "reetridder"  fullword wide ascii nocase
-      $  =  "remsporeng"  fullword wide ascii nocase
+      $  =  "remsporen"  fullword wide ascii nocase
       $  =  "reutelen"  fullword wide ascii nocase
       $  =  "rothoer"  fullword wide ascii nocase
       $  =  "rotzak"  fullword wide ascii nocase
@@ -155,21 +155,21 @@ rule content_nl_language_nsfw {
       $  =  "sletg"  fullword wide ascii nocase
       $  =  "sletterig"  fullword wide ascii nocase
       $  =  "slik mijn zaad"  fullword wide ascii nocase
-      $  =  "snolg"  fullword wide ascii nocase
+      $  =  "snol"  fullword wide ascii nocase
       $  =  "spuiten"  fullword wide ascii nocase
       $  =  "standje"  fullword wide ascii nocase
-      $  =  "standje-69g"  fullword wide ascii nocase
+      $  =  "standje-69"  fullword wide ascii nocase
       $  =  "stoephoer"  fullword wide ascii nocase
       $  =  "stootje"  fullword wide ascii nocase
       $  =  "strontg"  fullword wide ascii nocase
       $  =  "sufferdg"  fullword wide ascii nocase
       $  =  "tapijtnek"  fullword wide ascii nocase
-      $  =  "teefg"  fullword wide ascii nocase
+      $  =  "teef"  fullword wide ascii nocase
       $  =  "temeier"  fullword wide ascii nocase
       $  =  "teringlijer"  fullword wide ascii nocase
       $  =  "toeter"  fullword wide ascii nocase
-      $  =  "tongzoeng"  fullword wide ascii nocase
-      $  =  "triootjeg"  fullword wide ascii nocase
+      $  =  "tongzoen"  fullword wide ascii nocase
+      $  =  "triootje"  fullword wide ascii nocase
       $  =  "trottoir prostituée"  fullword wide ascii nocase
       $  =  "trottoirteef"  fullword wide ascii nocase
       $  =  "vergallen"  fullword wide ascii nocase
