@@ -1,5 +1,5 @@
-blank;01;0
-brickWall;b1;1
-spikesBottom;d1;2
-start;st;0
-finish;fn;0
+blank;01;0;mechanics;
+brickWall;b1;1;block;
+spikesBottom;d1;2;trap;
+start;st;0;mechanics;
+finish;fn;0;mechanics;
